@@ -1,19 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="24393463-dafe-421a-b9f5-f907dae73d38" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7ec0bc58-7ecd-4665-9ff1-ba777f246b26" >
-		<http:request-connection protocol="HTTPS" host="dummyjson.com" />
+		<http:request-connection host="reqres.in"/>
 	</http:request-config>
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="169e5394-a6da-442b-871e-af27597b9211"
+		file="configs/config-${mule.env}.yaml" />
 	<flow name="test-sample" doc:id="ee934fc2-dc2a-4162-9915-efd1004de2db" >
 		<http:listener doc:name="Listener" doc:id="bf950813-a9bf-46a3-a551-c8b5907ad744" config-ref="HTTP_Listener_config" path="/api"/>
-		<http:request method="GET" doc:name="Request" doc:id="1b27d49a-b353-4e8c-baba-8da42d1d0ed3" path="/products/1" config-ref="HTTP_Request_configuration"/>
+		<http:request method="GET" doc:name="Request" doc:id="1b27d49a-b353-4e8c-baba-8da42d1d0ed3" path="/api/users?page=2" config-ref="HTTP_Request_configuration"/>
 		<logger level="INFO" doc:name="Logger" doc:id="87e2cfb1-44c5-4fa4-9805-904c8238cc9f" message="started********"/>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="04e154b1-f6da-4768-91a1-f60211de48bd" />
+	</flow>
+	<flow name="local-api" >
+		<http:listener doc:name="Listener" doc:id="7c496e26-3bf8-4cf3-b64a-76495b8e0cd2" config-ref="HTTP_Listener_config" path="/api/test"/>
+		<logger level="INFO" doc:name="Logger" doc:id="cda2e778-717d-438c-bcad-4c69d9823b1d" message="#[Mule::p('app.number')]"/>
+		<ee:transform doc:name="Transform Message" doc:id="0987b501-b3b9-4319-a08f-f2d648e292e2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"test": p('app.version'),
+	"test2":"${app.version}"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		
+		
 	</flow>
 </mule>
